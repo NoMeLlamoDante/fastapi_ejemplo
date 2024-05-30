@@ -29,14 +29,13 @@ async def users():
 
 @app.get("/user/{id}")
 async def user(id: int):
-    users =  filter(lambda user:user.id == id, users_list)
-    try:
-        return list(users)[0]
-    except:
-        return {"error": "no se ha encontrado el usuario solicitado"}
+    return search_user(id)
     
-@app.get("/userquery")
+@app.get("/user")
 async def userquery(id: int):
+    return search_user(id)
+
+def search_user(id: int):
     users =  filter(lambda user:user.id == id, users_list)
     try:
         return list(users)[0]
