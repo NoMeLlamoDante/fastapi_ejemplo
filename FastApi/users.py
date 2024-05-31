@@ -31,7 +31,7 @@ async def users():
 async def user(id: int):
     return search_user(id)
     
-@app.get("/user")
+@app.get("/user/")
 async def userquery(id: int):
     return search_user(id)
 
@@ -42,3 +42,10 @@ def search_user(id: int):
     except:
         return {"error": "no se ha encontrado el usuario solicitado"}
     
+@app.post("/user/")
+async def user(user: User):
+    if type(search_user(user.id)) == User:
+        return {"error": "El usuario ya existe"}
+    else:
+        users_list.append(user)
+
