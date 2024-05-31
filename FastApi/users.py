@@ -13,15 +13,15 @@ class User(BaseModel):
 
 
 users_list = [User(id= 1, name= "dante", surname= "zarate", age= 31),
-    User(id= 2,name= "cecilia", surname= "montejo", age= 31),
-    User(id= 3, name= "aimee", surname= "solis", age= 30)]
+            User(id= 2,name= "cecilia", surname= "montejo", age= 31),
+            User(id= 3, name= "aimee", surname= "solis", age= 30)]
 
 @app.get("/usersjson")
 async def usersjson():
     return [{"name": "dante", "surname": "zarate", "age": 31},
-{"name": "cecilia", "surname": "montejo", "age": 31},
-{"name": "aimee", "surname": "solis", "age": 30}
-]
+            {"name": "cecilia", "surname": "montejo", "age": 31},
+            {"name": "aimee", "surname": "solis", "age": 30}
+            ]
 
 @app.get("/users")
 async def users():
@@ -46,8 +46,8 @@ def search_user(id: int):
 async def user(user: User):
     if type(search_user(user.id)) == User:
         return {"error": "El usuario ya existe"}
-    else:
-        users_list.append(user)
+    users_list.append(user)
+    return user
 
 @app.put("/user/")
 async def user(user: User):
@@ -58,4 +58,4 @@ async def user(user: User):
             found = True
     if not found:
         return {"error": "no se ha actualizado el usuario"}
-    
+    return user
