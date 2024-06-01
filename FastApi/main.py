@@ -1,6 +1,7 @@
 from typing import Union
 from fastapi import FastAPI
 from routers import products, users
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
@@ -16,3 +17,4 @@ async def root():
 async def url():
     return { "url": "https://google.com"}
 
+app.mount("/static",StaticFiles(directory="static"), name="static")
