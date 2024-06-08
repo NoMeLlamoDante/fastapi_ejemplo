@@ -2,7 +2,7 @@ from datetime import datetime, timedelta,timezone
 from typing import Annotated, Union
 
 import jwt
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
@@ -12,7 +12,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 5
 SECRET = "a1acf3f9da84da9f289e5dd6cd5259bb"
 
-app = FastAPI()
+router = APIRouter()
 
 users_db = {
     "dante" : {
@@ -80,7 +80,7 @@ async def current_user(user: User = Depends(auth_user)):
             detail="Usuario inactivo")
     return user
 
-@app.post("/login")
+@router.post("/login")
 async def login(form: OAuth2PasswordRequestForm = Depends()):
     user_db = users_db.get(form.username)
     if not user_db:
@@ -95,6 +95,6 @@ async def login(form: OAuth2PasswordRequestForm = Depends()):
     }
     return {"access_token": jwt.encode(access_token,SECRET,ALGORITHM), "token_type":"JWT"}
 
-@app.get("/users/me")
+@router.get("/users/me")
 async def me(user: User = Depends(current_user)):
     return user
