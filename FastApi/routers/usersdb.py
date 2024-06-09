@@ -10,13 +10,11 @@ router = APIRouter(prefix="/usersdb",
                     tags=["usersdb"], 
                     responses={status.HTTP_404_NOT_FOUND:{"message":"no encontrado"}})
 
-users_list = []
-
 @router.get("/{id}") #Path
 async def user(id: str):
     return search_user(field="_id",key=ObjectId(id))
     
-@router.get("/user/") #Query
+@router.get("/user") #Query
 async def userquery(email: str):
     print(email)
     return search_user(field="email", key=email)
@@ -43,17 +41,16 @@ async def user(user: User):
     new_user = user_schema(db_client.local.users.find_one({"_id":ObjectId(id)}))
     return User(**new_user)
 
-@router.put("/")
+@router.put("/", response_model=User)
 async def user(user: User):
-    found = False
-    for index, saved_user in enumerate(users_list):
-        if saved_user.id == user.id:
-            users_list[index] = user
-            found = True
-    if not found:
+    try:
+        user_dict = dict(user)
+        del user_dict["id"]
+        db_client.local.users.find_one_and_replace({"_id":ObjectId(user.id)},user_dict)        
+    except:
         return {"error": "no se ha actualizado el usuario"}
-    return user
-
+    return search_user("_id",ObjectId(user.id))
+    
 @router.delete("/{id}", status_code = status.HTTP_204_NO_CONTENT)
 async def user(id: str):
     found = db_client.local.users.find_one_and_delete({"_id": ObjectId(id)})
