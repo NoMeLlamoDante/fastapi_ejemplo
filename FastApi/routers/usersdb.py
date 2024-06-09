@@ -12,7 +12,7 @@ router = APIRouter(prefix="/usersdb",
 
 users_list = []
 
-@router.get("/user/{id}") #Path
+@router.get("/{id}") #Path
 async def user(id: str):
     return search_user(field="_id",key=ObjectId(id))
     
@@ -26,10 +26,11 @@ def search_user(field: str, key):
         user = db_client.local.users.find_one({field: key})
         return User(**user_schema(user))
     except:
-        return None
+        return {"error": "no se ha encontrado el usuario"}
 
 @router.get("/", response_model=list[User])
 async def users():
+    print("entra")
     return users_schema(db_client.local.users.find())
     
 @router.post("/",response_model=User, status_code=status.HTTP_201_CREATED)
@@ -39,7 +40,7 @@ async def user(user: User):
     user_dict = dict(user)
     del user_dict["id"]
     id = db_client.local.users.insert_one(user_dict).inserted_id
-    new_user = user_schema(db_client.local.users.find_one({"_id":id}))
+    new_user = user_schema(db_client.local.users.find_one({"_id":ObjectId(id)}))
     return User(**new_user)
 
 @router.put("/")
@@ -53,12 +54,9 @@ async def user(user: User):
         return {"error": "no se ha actualizado el usuario"}
     return user
 
-@router.delete("/{id}")
-async def user(id: int):
-    found = False
-    for index, saved_user in enumerate(users_list):
-        if saved_user.id == id:
-            del users_list[index]
-            found = True
+@router.delete("/{id}", status_code = status.HTTP_204_NO_CONTENT)
+async def user(id: str):
+    found = db_client.local.users.find_one_and_delete({"_id": ObjectId(id)})
     if not found:
-        return {"error": "no se ha eliminado el usuario"}
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="No eliminado")
+    
