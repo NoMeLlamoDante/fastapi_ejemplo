@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, status
 from db.models.user import User
-from db.schemas.user import user_schema
+from db.schemas.user import user_schema, users_schema
 from db.client import db_client
-from bson.objectid import ObjectId
+from bson import ObjectId
 
 from pprint import pprint
 
@@ -12,28 +12,29 @@ router = APIRouter(prefix="/usersdb",
 
 users_list = []
 
-@router.get("/user/{id}")
-async def user(id: int):
-    return search_user(id)
+@router.get("/user/{id}") #Path
+async def user(id: str):
+    return search_user(field="_id",key=ObjectId(id))
     
-@router.get("/user/")
+@router.get("/user/") #Query
 async def userquery(email: str):
-    return search_user_by_email(email)
+    print(email)
+    return search_user(field="email", key=email)
 
-def search_user_by_email(email: str):
+def search_user(field: str, key):
     try:
-        user = db_client.local.users.find_one({"email": email})
+        user = db_client.local.users.find_one({field: key})
         return User(**user_schema(user))
     except:
         return None
 
-@router.get("/")
+@router.get("/", response_model=list[User])
 async def users():
-    return users_list
+    return users_schema(db_client.local.users.find())
     
 @router.post("/",response_model=User, status_code=status.HTTP_201_CREATED)
 async def user(user: User):
-    if type(search_user_by_email(user.email)) == User:
+    if type(search_user(field="email", key=user.email)) == User:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="El usuario ya existe")
     user_dict = dict(user)
     del user_dict["id"]
