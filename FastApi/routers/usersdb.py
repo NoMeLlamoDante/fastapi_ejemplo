@@ -17,15 +17,15 @@ async def user(id: int):
     return search_user(id)
     
 @router.get("/user/")
-async def userquery(id: int):
-    return search_user(id)
+async def userquery(email: str):
+    return search_user_by_email(email)
 
-def search_user(id: int):
-    users =  filter(lambda user:user.id == id, users_list)
+def search_user_by_email(email: str):
     try:
-        return list(users)[0]
+        user = db_client.local.users.find_one({"email": email})
+        return User(**user_schema(user))
     except:
-        return {"error": "no se ha encontrado el usuario solicitado"}
+        return None
 
 @router.get("/")
 async def users():
@@ -33,9 +33,8 @@ async def users():
     
 @router.post("/",response_model=User, status_code=status.HTTP_201_CREATED)
 async def user(user: User):
-    # if type(search_user(user.id)) == User:
-    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="El usuario ya existe")
-    # users_list.append(user)
+    if type(search_user_by_email(user.email)) == User:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="El usuario ya existe")
     user_dict = dict(user)
     del user_dict["id"]
     id = db_client.local.users.insert_one(user_dict).inserted_id
